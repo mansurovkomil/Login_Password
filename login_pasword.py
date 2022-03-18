@@ -1,17 +1,22 @@
 
-
-
 import os
 import sys
+import mysql.connector
+
+mydb = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    passwd="1234",
+    database="users_info"
+)
 
 
 class register1:
     def __init__(self):
-        self.parol=None
-        self.log=None
+        self.parol = None
+        self.log = None
         self.qabul = []
         self.regis()
-
 
     def regis(self):
         a = input(self.ekran()).strip()
@@ -26,23 +31,24 @@ class register1:
                 os.system('cls')
                 print('Iltimos aytilganlardan tanlang\n')
                 a = input(self.ekran()).strip()
-        if a=='1':
+        if a == '1':
             self.register()
-        elif not self.fayl() and a=='2':
+        elif not self.fayl() and a == '2':
             self.login_()
         else:
             sys.exit()
 
     def register(self):
-        self.log=input("Login: ").strip()
-        self.parol=input("Password: ").strip()
+        self.log = input("Login: ").strip()
+        self.parol = input("Password: ").strip()
         for i in range(len(self.log)):
             self.log.replace(' ', '')
         for i in range(len(self.parol)):
             self.parol.replace(' ', '')
         os.system('cls')
 
-        while not self.uzun(self.log) or not self.uzun1(self.parol) or not self.log.isalnum() or not self.parol.isalnum() or self.bormi(self.log):
+        while not self.uzun(self.log) or not self.uzun1(
+                self.parol) or not self.log.isalnum() or not self.parol.isalnum() or self.sql_Login():
             os.system('cls')
             print("Iltimos belgi kiritmen, hato loginizda 3 tadan kam yoki passwordda 6 tadan kam\n")
             self.log = input("Login: ").strip()
@@ -57,6 +63,7 @@ class register1:
             os.system('cls')
             print("Siz 3 tadan kam kirittiz yoki harif kiritmadiz\nIltimos togri yozin\n")
             name = input('Ismiz: ').strip()
+        name = name.capitalize()
 
         years = input("Yoshiz: ").strip()
         while not years.isdigit() or not self.yosh(years):
@@ -64,29 +71,23 @@ class register1:
             print("Notogri siz 12 dan kotta bolishis kere\nIltimos togri yozin\n")
             years = input("Yoshiz: ").strip()
 
-        Num = input("Tel: ").strip()
-        while not Num.isdigit() or not self.num(Num):
+        Num = input("Tel:+998 ").strip()
+        while not Num.isdigit() or not self.num(Num) or not int(Num) != 0:
             os.system('cls')
             print("Telefonizni kodi bilan yozin\nIltimos togri yozin\n")
             Num = input("Tel: +998").strip()
 
         print('Tabriklimiz\nAkkaunt ochildi!!!')
-
-        j = open("registr.txt", 'a')
-        j.write(f"Login:"+self.log + "|Password:"+self.parol+ "/name="+name.capitalize() +'-years='+ str(int(years)) +'>Num=+998'+ Num+ "\n")
+        mycursor = mydb.cursor()
+        mycursor.execute("CREATE TABLE IF NOT EXISTS users(ID serial primary key, Login varchar(20), Password varchar(20), name VARCHAR(50), age int, numbers  varchar(20))")
+        mycursor.execute(f"INSERT INTO users(Login, Password, name, age, numbers) VALUES('{self.log}', '{self.parol}', '{name}', '{years}', '+998{Num}')")
 
 
     def login_(self):
-        s = 0
         self.log = input("Login: ").strip()
         self.parol = input("Password: ").strip()
-        self.koesh()
         os.system("cls")
-        for i in self.qabul:
-            if i["Login"] == self.log and i["Password"] == self.parol:
-                s=1
-
-        if s == 1:
+        if self.sql_Login() and self.sql_Password():
             os.system('cls')
             self.log_()
         else:
@@ -94,117 +95,97 @@ class register1:
             return self.login_()
 
     def log_(self):
-        b = input("1 Malumot\n2 Akkauntni ochirish\n3 Loginni yangilash\n4 Passwordni yangilash\n").strip()
-        while b not in ['1', '2', '3', '4']:
+        b = input("1 Malumot\n2 Akkauntni ochirish\n3 Loginni yangilash\n4 Passwordni yangilash\n5 Exit\n").strip()
+        while b not in ['1', '2', '3', '4', '5']:
             os.system('cls')
             print("Iltimos\nAytilganlardan kiriting\n")
-            b = input("1 Malumot\n2 Akkauntni ochirish\n3 Loginni yangilash\n4 Passwordni yangilash\n").strip()
+            b = input("1 Malumot\n2 Akkauntni ochirish\n3 Loginni yangilash\n4 Passwordni yangilash\n5 Exit\n").strip()
         os.system('cls')
         if b == '1':
             self.mal()
             self.log_()
         elif b == '2':
             self.ochirish()
+            self.regis()
         elif b == '3':
             self.log_yangi(self.log)
-        else:
+        elif b == '4':
             self.password_yangi()
-
-
-    def koesh(self):
-        with open('registr.txt') as f:
-            k = f.read().split()
-            for g in k:
-                self.qabul.append(
-                    {
-                        'Login': g.split('|')[0].split(':')[1],
-                        'Password': g.split('|')[1].split(':')[1].split('/')[0],
-                        'Mal': g.split('/')[1].split('-')[0],
-                        'Malum': g.split('/')[1].split('-')[1].split('>')[0],
-                        'Malumot1': g.split('/')[1].split('-')[1].split('>')[1]
-                    }
-                )
+        else:
+            sys.exit()
 
 
     def ochirish(self):
-        v = open('registr.txt')
-        v1 = v.read().split()
-        h = open("registr.txt", 'w')
-        h.write('')
-        for i in v1:
-            if i.split('|')[0].split(':')[1] == self.log:
-                pass
-            else:
-                h = open("registr.txt", 'a')
-                h.write(i + '\n')
-                h.close()
-        self.koesh()
+        mycursor = mydb.cursor()
+        mycursor.execute(f"delete from users where Login='{self.log}'")
+
         os.system('cls')
         print("Akkaunt ochirildi")
 
 
     def log_yangi(self, sel):
-        time_log = input('New Login: ').strip()
+        time_log = self.log
+        self.log = input('New Login: ').strip()
         for i in range(len(self.log)):
             self.log.replace(' ', '')
-        while not self.uzun(time_log) or not time_log.isalnum() or self.bormi(time_log):
+        while not self.uzun(self.log) or not self.log.isalnum() or self.sql_Login():
             os.system('cls')
             print("Hato loginizda 3 tadan kam, yoki belgi kirittiz\n")
-            time_log = input("New Login: ").strip()
+            self._log = input("New Login: ").strip()
             for i in range(len(self.log)):
                 self.log.replace(' ', '')
 
-        v = open('registr.txt')
-        v1 = v.read().split()
-        h = open("registr.txt", 'w')
-        h.write('')
-        for i in v1:
-            if i.split('|')[0].split(':')[1] == sel:
-                h = open("registr.txt", 'a')
-                h.write(f'Login:'+time_log+'|'+i.split('|')[1]+'\n')
-                h.close()
-            else:
-                h = open("registr.txt", 'a')
-                h.write(i+'\n')
-                h.close()
-        self.koesh()
+        mycursor = mydb.cursor()
+        mycursor.execute(f"update users set Login='{self.log}' where Login='{time_log}'")
+
         os.system('cls')
         print("Login yangilandi\n")
 
 
     def password_yangi(self):
-        time_parol = input('New Password: ').strip()
+        time_parol = self.parol
+        self.parol = input('New Password: ').strip()
         for i in range(len(self.parol)):
             self.parol.replace(' ', '')
-        while not self.uzun1(time_parol) or not time_parol.isalnum() and self.bormi(time_parol):
+        while not self.uzun1(self.parol) or not self.parol.isalnum():
             os.system('cls')
             print("Hato passworda 6 tadan kam, yoki belgi bor\n")
-            time_parol = input("New Password: ").strip()
+            self.parol = input("New Password: ").strip()
             for i in range(len(self.parol)):
                 self.parol.replace(' ', '')
 
-        v = open('registr.txt')
-        v1 = v.read().split()
-        h = open("registr.txt", 'w')
-        h.write('')
-        for i in v1:
-            if i.split('|')[0].split(':')[1] == self.log:
-                h = open("registr.txt", 'a')
-                h.write(f''+i.split('|')[0]+'|Password:'+time_parol+'/'+i.split('|')[1].split(':')[1].split('/')[1]+'\n')
-                h.close()
-            else:
-                h = open("registr.txt", 'a')
-                h.write(i+'\n')
-                h.close()
-        self.koesh()
+        mycursor = mydb.cursor()
+        mycursor.execute(f"update users set Password='{self.parol}' where Password='{time_parol}'")
+
         os.system('cls')
         print("Password yangilandi\n")
 
-    def mal(self):
-        for i in self.qabul:
-            if i['Login']==self.log and i['Password']==self.parol:
-                return print(i['Mal']+'\n'+i['Malum']+'\n'+i['Malumot1'])
 
+    def sql_Login(self):
+        mycursor = mydb.cursor()
+        mycursor.execute("select Login from users")
+        a = mycursor.fetchall()
+        for i in a:
+            if i[0] == self.log:
+                return True
+        return False
+
+
+    def sql_Password(self):
+        mycursor = mydb.cursor()
+        mycursor.execute("select Password from users")
+        a = mycursor.fetchall()
+        for i in a:
+            if i[0] == self.parol:
+                return True
+        return False
+
+
+    def mal(self):
+        mycursor = mydb.cursor()
+        mycursor.execute(f"select name, age, numbers from users where Login='{self.log}'")
+        a = mycursor.fetchall()
+        return print('Name:',a[0][0], '\nAge:', a[0][1], '\nNumber:', a[0][2])
 
     def ekran(self):
         if self.fayl():
@@ -219,42 +200,41 @@ class register1:
             3 Exit
             """
 
+
     @staticmethod
     def fayl():
-        k=open("registr.txt")
-        return k.read()==''
+        mycursor = mydb.cursor()
+        mycursor.execute("CREATE TABLE IF NOT EXISTS users(ID serial primary key, Login varchar(20), Password varchar(20), name VARCHAR(50), age int, numbers  varchar(20))")
+        mycursor = mydb.cursor()
+        mycursor.execute("select * from users")
+        a = mycursor.fetchall()
+        if a == []:
+            return True
+        return False
 
     @staticmethod
     def yosh(y):
-        return int(y)<=100 and int(y)>=12
+        return int(y) <= 100 and int(y) >= 12
 
     @staticmethod
     def num(y: str):
-        return len(y)==9
+        return len(y) == 9
 
     @staticmethod
     def ism(y: str):
-        return len(y)>=3
+        return len(y) >= 3
 
     @staticmethod
     def uzun(log_: str):
-        return 12>=len(log_) and len(log_)>=3
+        return 12 >= len(log_) and len(log_) >= 3
 
     @staticmethod
     def uzun1(parol_: str):
-        return 6<=len(parol_) and len(parol_)<=12
-
-    def bormi(self, k):
-        self.koesh()
-        for i in self.qabul:
-            if i['Login'] == k:
-                return True
-        return False
+        return 6 <= len(parol_) and len(parol_) <= 12
 
 
 d = register1()
-
-
+mydb.commit()
 
 
 
